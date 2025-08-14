@@ -1,24 +1,25 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+from model import train_model
+import matplotlib.pyplot as plt
+import joblib
+
 
 # --- Load dataset ---
 url = "https://raw.githubusercontent.com/JohannaViktor/streamlit_practical/refs/heads/main/global_development_data.csv"
 df = pd.read_csv(url)
+df.columns = df.columns.str.strip()
+df['Life Expectancy (IHME)'] = pd.to_numeric(df['Life Expectancy (IHME)'], errors='coerce')
+df['GDP per capita'] = pd.to_numeric(df['GDP per capita'], errors='coerce')
+df['headcount_ratio_upper_mid_income_povline'] = pd.to_numeric(
+    df['headcount_ratio_upper_mid_income_povline'], errors='coerce'
+)
 
 # --- Page layout ---
 st.set_page_config(layout="wide")
-
-# Headline
 st.title("Worldwide Analysis of Quality of Life and Economic Factors")
 
-# Subtitle
-st.subheader(
-    "This app enables you to explore the relationships between poverty, "
-    "life expectancy, and GDP across various countries and years. "
-    "Use the panels to select options and interact with the data."
-)
-
-# --- Create tabs ---
 tab1, tab2, tab3 = st.tabs(["Global Overview", "Country Deep Dive", "Data Explorer"])
 
 # =====================
@@ -27,22 +28,18 @@ tab1, tab2, tab3 = st.tabs(["Global Overview", "Country Deep Dive", "Data Explor
 with tab1:
     st.write("### Global Overview")
 
-    # Year slider
     year_selected = st.slider(
         "Select Year",
         min_value=int(df["year"].min()),
         max_value=int(df["year"].max()),
         value=int(df["year"].min())
     )
-
-    # Filter dataset for the selected year
     df_year = df[df["year"] == year_selected]
 
-    # 4 Key Metrics
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        mean_life_exp = df_year["Life expectancy at birth (years)"].mean()
+        mean_life_exp = df_year["Life Expectancy (IHME)"].mean()
         st.metric("Mean Life Expectancy", f"{mean_life_exp:.2f}", "Average years people live")
 
     with col2:
@@ -50,7 +47,7 @@ with tab1:
         st.metric("Median GDP per Capita", f"${median_gdp:,.0f}", "Middle value of GDP per person")
 
     with col3:
-        mean_poverty = df_year["Headcount ratio: Upper-middle-income poverty line"].mean()
+        mean_poverty = df_year["headcount_ratio_upper_mid_income_povline"].mean()
         st.metric("Mean Poverty Rate", f"{mean_poverty:.2f}%", "Average % living under poverty line")
 
     with col4:
@@ -58,53 +55,54 @@ with tab1:
         st.metric("Number of Countries", num_countries, "Countries reporting data")
 
     st.write("---")
-    st.write("Content for the global overview will go here.")
 
-# =====================
-# Tab 2: Country Deep Dive
-# =====================
-with tab2:
-    st.write("### Country Deep Dive")
-    st.write("Content for the country deep dive will go here.")
+    # --- Task 6: Simple RandomForest model ---
+    st.write("### Task 6: Predict Life Expectancy")
 
-# =====================
-# Tab 3: Data Explorer
-# =====================
-with tab3:
-    st.write("### Data Explorer")
+    # Train model
+    ###model, feature_importance = train_model(df)
 
-    # Multiselect for countries
-    countries = st.multiselect(
-        "Select Countries",
-        options=df["country"].unique(),
-        default=[]
+    # Create input fields
+    gdp_input = st.number_input(
+        "GDP per capita", 
+        min_value=float(df['GDP per capita'].min()), 
+        max_value=float(df['GDP per capita'].max()), 
+        value=float(df['GDP per capita'].median())
     )
-
-    # Year range slider
-    min_year = int(df["year"].min())
-    max_year = int(df["year"].max())
-    years = st.slider(
-        "Select Year Range",
-        min_value=min_year,
-        max_value=max_year,
-        value=(min_year, max_year)
+    poverty_input = st.number_input(
+        "Upper-middle-income Poverty Rate (%)", 
+        min_value=float(df['headcount_ratio_upper_mid_income_povline'].min()), 
+        max_value=float(df['headcount_ratio_upper_mid_income_povline'].max()), 
+        value=float(df['headcount_ratio_upper_mid_income_povline'].median())
     )
-
-    # Filter dataset
-    filtered_df = df[
-        (df["year"] >= years[0]) & (df["year"] <= years[1])
-    ]
-    if countries:
-        filtered_df = filtered_df[filtered_df["country"].isin(countries)]
-
-    # Show filtered dataframe
-    st.dataframe(filtered_df)
-
-    # Download button
-    csv = filtered_df.to_csv(index=False).encode("utf-8")
-    st.download_button(
-        label="Download filtered data as CSV",
-        data=csv,
-        file_name="filtered_global_development_data.csv",
-        mime="text/csv"
+    year_input = st.number_input(
+        "Year", 
+        min_value=int(df['year'].min()), 
+        max_value=int(df['year'].max()), 
+        value=int(df['year'].median())
     )
+gdp_input = st.number_input("GDP per capita")
+poverty_input = st.number_input("Upper-middle-income Poverty Rate (%)")
+year_input = st.number_input("Year")
+    # Load saved model
+
+@st.cache_resource
+def load_model():
+    return joblib.load("random_forest_model.pkl")
+
+model_trained = load_model()
+
+
+if st.button("Predict Life Expectancy"):
+    X_new = np.array([[gdp_input, poverty_input, year_input]])
+    prediction = model_trained.predict(X_new)[0]
+    st.success(f"Predicted Life Expectancy: {prediction:.2f} years")
+
+    # Feature importance plot
+    st.write("#### Feature Importance")
+    fig, ax = plt.subplots()
+    ax.bar(feature_importance.keys(), feature_importance.values())
+    ax.set_ylabel("Importance")
+    ax.set_title("RandomForest Feature Importance")
+    st.pyplot(fig)
+
