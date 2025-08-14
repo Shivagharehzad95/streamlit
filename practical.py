@@ -42,15 +42,15 @@ with tab1:
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        mean_life_exp = df_year["life_expectancy"].mean()
+        mean_life_exp = df_year["Life expectancy at birth (years)"].mean()
         st.metric("Mean Life Expectancy", f"{mean_life_exp:.2f}", "Average years people live")
 
     with col2:
-        median_gdp = df_year["gdp_per_capita"].median()
+        median_gdp = df_year["GDP per capita"].median()
         st.metric("Median GDP per Capita", f"${median_gdp:,.0f}", "Middle value of GDP per person")
 
     with col3:
-        mean_poverty = df_year["headcount_ratio_upper_mid_income_povline"].mean()
+        mean_poverty = df_year["Headcount ratio: Upper-middle-income poverty line"].mean()
         st.metric("Mean Poverty Rate", f"{mean_poverty:.2f}%", "Average % living under poverty line")
 
     with col4:
