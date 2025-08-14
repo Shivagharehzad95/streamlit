@@ -1,11 +1,11 @@
 import streamlit as st
-import pandas as pd 
+import pandas as pd
 
-url ="https://raw.githubusercontent.com/JohannaViktor/streamlit_practical/refs/heads/main/global_development_data.csv"
-
+# --- Load dataset ---
+url = "https://raw.githubusercontent.com/JohannaViktor/streamlit_practical/refs/heads/main/global_development_data.csv"
 df = pd.read_csv(url)
 
-# Set page layout to wide
+# --- Page layout ---
 st.set_page_config(layout="wide")
 
 # Headline
@@ -18,13 +18,16 @@ st.subheader(
     "Use the panels to select options and interact with the data."
 )
 
-# Create tabs
+# --- Create tabs ---
 tab1, tab2, tab3 = st.tabs(["Global Overview", "Country Deep Dive", "Data Explorer"])
 
+# =====================
+# Tab 1: Global Overview
+# =====================
 with tab1:
     st.write("### Global Overview")
 
-    # --- Task 4: Year slider ---
+    # Year slider
     year_selected = st.slider(
         "Select Year",
         min_value=int(df["year"].min()),
@@ -35,7 +38,7 @@ with tab1:
     # Filter dataset for the selected year
     df_year = df[df["year"] == year_selected]
 
-    # --- 4 Key Metrics ---
+    # 4 Key Metrics
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
@@ -57,30 +60,30 @@ with tab1:
     st.write("---")
     st.write("Content for the global overview will go here.")
 
-
+# =====================
+# Tab 2: Country Deep Dive
+# =====================
 with tab2:
     st.write("### Country Deep Dive")
     st.write("Content for the country deep dive will go here.")
 
+# =====================
+# Tab 3: Data Explorer
+# =====================
 with tab3:
     st.write("### Data Explorer")
-    st.write("Content for exploring the raw data will go here.")
-
-# Load datasetimport pandas as pd
-
-
 
     # Multiselect for countries
-countries = st.multiselect(
+    countries = st.multiselect(
         "Select Countries",
         options=df["country"].unique(),
         default=[]
     )
 
     # Year range slider
-min_year = int(df["year"].min())
-max_year = int(df["year"].max())
-years = st.slider(
+    min_year = int(df["year"].min())
+    max_year = int(df["year"].max())
+    years = st.slider(
         "Select Year Range",
         min_value=min_year,
         max_value=max_year,
@@ -88,20 +91,18 @@ years = st.slider(
     )
 
     # Filter dataset
-filtered_df = df[
-        (df["year"] >= years[0]) &
-        (df["year"] <= years[1])
+    filtered_df = df[
+        (df["year"] >= years[0]) & (df["year"] <= years[1])
     ]
-
-if countries:
+    if countries:
         filtered_df = filtered_df[filtered_df["country"].isin(countries)]
 
     # Show filtered dataframe
-st.dataframe(filtered_df)
+    st.dataframe(filtered_df)
 
     # Download button
-csv = filtered_df.to_csv(index=False).encode("utf-8")
-st.download_button(
+    csv = filtered_df.to_csv(index=False).encode("utf-8")
+    st.download_button(
         label="Download filtered data as CSV",
         data=csv,
         file_name="filtered_global_development_data.csv",
