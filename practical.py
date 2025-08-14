@@ -29,10 +29,12 @@ with tab3:
     st.write("### Data Explorer")
     st.write("Content for exploring the raw data will go here.")
 
-# Load dataset
-df = pd.read_csv(r"C:\Users\Admin\Downloads\global_development_data.csv")
+# Load datasetimport pandas as pd
 
 
+url ="https://raw.githubusercontent.com/JohannaViktor/streamlit_practical/refs/heads/main/global_development_data.csv"
+
+df = pd.read_csv(url)
 
 
     # Multiselect for countries
