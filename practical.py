@@ -1,6 +1,10 @@
 import streamlit as st
 import pandas as pd 
 
+url ="https://raw.githubusercontent.com/JohannaViktor/streamlit_practical/refs/heads/main/global_development_data.csv"
+
+df = pd.read_csv(url)
+
 # Set page layout to wide
 st.set_page_config(layout="wide")
 
@@ -19,7 +23,40 @@ tab1, tab2, tab3 = st.tabs(["Global Overview", "Country Deep Dive", "Data Explor
 
 with tab1:
     st.write("### Global Overview")
+
+    # --- Task 4: Year slider ---
+    year_selected = st.slider(
+        "Select Year",
+        min_value=int(df["year"].min()),
+        max_value=int(df["year"].max()),
+        value=int(df["year"].min())
+    )
+
+    # Filter dataset for the selected year
+    df_year = df[df["year"] == year_selected]
+
+    # --- 4 Key Metrics ---
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        mean_life_exp = df_year["life_expectancy"].mean()
+        st.metric("Mean Life Expectancy", f"{mean_life_exp:.2f}", "Average years people live")
+
+    with col2:
+        median_gdp = df_year["gdp_per_capita"].median()
+        st.metric("Median GDP per Capita", f"${median_gdp:,.0f}", "Middle value of GDP per person")
+
+    with col3:
+        mean_poverty = df_year["headcount_ratio_upper_mid_income_povline"].mean()
+        st.metric("Mean Poverty Rate", f"{mean_poverty:.2f}%", "Average % living under poverty line")
+
+    with col4:
+        num_countries = df_year["country"].nunique()
+        st.metric("Number of Countries", num_countries, "Countries reporting data")
+
+    st.write("---")
     st.write("Content for the global overview will go here.")
+
 
 with tab2:
     st.write("### Country Deep Dive")
@@ -31,10 +68,6 @@ with tab3:
 
 # Load datasetimport pandas as pd
 
-
-url ="https://raw.githubusercontent.com/JohannaViktor/streamlit_practical/refs/heads/main/global_development_data.csv"
-
-df = pd.read_csv(url)
 
 
     # Multiselect for countries
