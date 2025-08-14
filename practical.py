@@ -77,7 +77,7 @@ with tab1:
     )
     year_input = st.number_input(
         "Year", 
-        min_value=int(df['year'].min()), 
+        min_value=int(df['year'].min()),
         max_value=int(df['year'].max()), 
         value=int(df['year'].median())
     )
